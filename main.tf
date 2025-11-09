@@ -10,8 +10,13 @@ variable "bucket_name" {
 resource "aws_s3_bucket" "static_site" {
   bucket = var.bucket_name
   force_destroy = true
-  website {
-    index_document = "index.html"
+}
+
+resource "aws_s3_bucket_website_configuration" "static_site" {
+  bucket = aws_s3_bucket.static_site.id
+
+  index_document {
+    suffix = "index.html"
   }
 }
 
@@ -57,5 +62,5 @@ resource "aws_s3_object" "icon" {
 }
 
 output "website_url" {
-  value = "https://${aws_s3_bucket.static_site.bucket}.s3.us-east-1.amazonaws.com/index.html"
+  value = "http://${aws_s3_bucket.static_site.bucket}.s3-website-us-east-1.amazonaws.com"
 }
