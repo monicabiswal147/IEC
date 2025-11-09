@@ -32,7 +32,7 @@ jobs:
             --account-id $ACCOUNT_ID \
             --public-access-block-configuration \
             BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false
-
+          sleep 10
       - name: Terraform Init
         run: terraform init
 

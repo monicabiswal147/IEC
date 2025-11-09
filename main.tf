@@ -26,6 +26,7 @@ resource "aws_s3_bucket_public_access_block" "public_access" {
 
 resource "aws_s3_bucket_policy" "public_read" {
   bucket = aws_s3_bucket.static_site.id
+  depends_on = [aws_s3_bucket_public_access_block.public_access]
 
   policy = jsonencode({
     Version = "2012-10-17",
