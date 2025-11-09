@@ -1,0 +1,58 @@
+name: Deploy Static website using S3
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Create S3 bucket
+      run: |
+        aws s3api head-bucket --bucket iec-mon || \
+        aws s3api create-bucket --bucket iec-mon --region us-east-1
+
+    - name: Enable public access
+      run: |
+        aws s3api put-public-access-block \
+          --bucket iec-mon \
+          --public-access-block-configuration \
+          '{"BlockPublicAcls":false,"IgnorePublicAcls":false,"BlockPublicPolicy":false,"RestrictPublicBuckets":false}'
+
+    - name: Set public read policy
+      run: |
+        cat > bucket-policy.json <<EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "PublicReadGetObject",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::iec-mon/*"
+            }
+          ]
+        }
+        EOF
+        aws s3api put-bucket-policy --bucket iec-mon --policy file://bucket-policy.json
+        rm bucket-policy.json
+
+    - name: Upload static site files
+      run: |
+        aws s3 cp index.html s3://iec-mon/
+        aws s3 cp icon.png s3://iec-mon/
