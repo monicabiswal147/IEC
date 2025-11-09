@@ -26,6 +26,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Empty S3 bucket
+        run: aws s3 rm s3://${{ github.event.inputs.bucket_name }} --recursive
+
       - name: Terraform Init
         run: terraform init
 
