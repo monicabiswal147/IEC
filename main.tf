@@ -10,13 +10,8 @@ variable "bucket_name" {
 resource "aws_s3_bucket" "static_site" {
   bucket = var.bucket_name
   force_destroy = true
-}
-
-resource "aws_s3_bucket_website_configuration" "static_site" {
-  bucket = aws_s3_bucket.static_site.id
-
-  index_document {
-    suffix = "index.html"
+  website {
+    index_document = "index.html"
   }
 }
 
