@@ -52,6 +52,7 @@ resource "aws_s3_object" "index" {
   key    = "index.html"
   source = "${path.module}/index.html"
   content_type = "text/html"
+  acl    = "public-read"
 }
 
 resource "aws_s3_object" "icon" {
@@ -59,6 +60,7 @@ resource "aws_s3_object" "icon" {
   key    = "icon.png"
   source = "${path.module}/icon.png"
   content_type = "image/png"
+  acl    = "public-read"
 }
 
 output "website_url" {
