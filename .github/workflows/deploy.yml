@@ -2,6 +2,11 @@ name: Deploy Static website using S3
 
 on:
   workflow_dispatch:
+    inputs:
+      bucket_name:
+        description: 'S3 Bucket name'
+        required: true
+        default: 'iec-mon'
 
 jobs:
   deploy:
@@ -20,15 +25,22 @@ jobs:
 
     - name: Create S3 bucket
       run: |
-        aws s3api head-bucket --bucket iec-mon || \
-        aws s3api create-bucket --bucket iec-mon --region us-east-1
+        if ! aws s3api head-bucket --bucket ${{ github.event.inputs.bucket_name }} 2>/dev/null; then
+          aws s3api create-bucket --bucket ${{ github.event.inputs.bucket_name }} --region us-east-1
+          echo "Bucket created successfully"
+        else
+          echo "Bucket already exists"
+        fi
 
     - name: Enable public access
       run: |
         aws s3api put-public-access-block \
-          --bucket iec-mon \
+          --bucket ${{ github.event.inputs.bucket_name }} \
           --public-access-block-configuration \
-          '{"BlockPublicAcls":false,"IgnorePublicAcls":false,"BlockPublicPolicy":false,"RestrictPublicBuckets":false}'
+          '{"BlockPublicAcls":false,"IgnorePublicAcls":false,"BlockPublicPolicy":false,"RestrictPublicBuckets":false}' || {
+          echo "Failed to configure public access block"
+          exit 1
+        }
 
     - name: Set public read policy
       run: |
@@ -41,15 +53,26 @@ jobs:
               "Effect": "Allow",
               "Principal": "*",
               "Action": "s3:GetObject",
-              "Resource": "arn:aws:s3:::iec-mon/*"
+              "Resource": "arn:aws:s3:::\${{ github.event.inputs.bucket_name }}/*"
             }
           ]
         }
         EOF
-        aws s3api put-bucket-policy --bucket iec-mon --policy file://bucket-policy.json
-        rm bucket-policy.json
+        if ! aws s3api put-bucket-policy --bucket ${{ github.event.inputs.bucket_name }} --policy file://bucket-policy.json; then
+          echo "Failed to apply bucket policy"
+          rm -f bucket-policy.json
+          exit 1
+        fi
+        rm -f bucket-policy.json
 
     - name: Upload static site files
       run: |
-        aws s3 cp index.html s3://iec-mon/
-        aws s3 cp icon.png s3://iec-mon/
+        if ! aws s3 cp index.html s3://${{ github.event.inputs.bucket_name }}/; then
+          echo "Failed to upload index.html"
+          exit 1
+        fi
+        if ! aws s3 cp icon.png s3://${{ github.event.inputs.bucket_name }}/; then
+          echo "Failed to upload icon.png"
+          exit 1
+        fi
+        echo "All files uploaded successfully"
