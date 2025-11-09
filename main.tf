@@ -57,5 +57,5 @@ resource "aws_s3_object" "icon" {
 }
 
 output "website_url" {
-  value = "http://${aws_s3_bucket.static_site.bucket}.s3-website-us-east-1.amazonaws.com"
+  value = "https://${aws_s3_bucket.static_site.bucket}.s3.us-east-1.amazonaws.com/index.html"
 }
