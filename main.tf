@@ -9,7 +9,6 @@ variable "bucket_name" {
 
 resource "aws_s3_bucket" "static_site" {
   bucket = var.bucket_name
-  acl    = "public-read"
   force_destroy = true
 }
 
@@ -21,14 +20,14 @@ resource "aws_s3_bucket_website_configuration" "static_site" {
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "public_access" {
-  bucket = aws_s3_bucket.static_site.id
-
-  block_public_acls       = false
-  ignore_public_acls      = false
-  block_public_policy     = false
-  restrict_public_buckets = false
-}
+# resource "aws_s3_bucket_public_access_block" "public_access" {
+#   bucket = aws_s3_bucket.static_site.id
+#
+#   block_public_acls       = false
+#   ignore_public_acls      = false
+#   block_public_policy     = false
+#   restrict_public_buckets = false
+# }
 
 resource "aws_s3_bucket_policy" "public_read" {
   bucket = aws_s3_bucket.static_site.id
@@ -51,7 +50,6 @@ resource "aws_s3_object" "index" {
   bucket = aws_s3_bucket.static_site.bucket
   key    = "index.html"
   source = "${path.module}/index.html"
-  acl    = "public-read"
   content_type = "text/html"
 }
 
@@ -59,7 +57,6 @@ resource "aws_s3_object" "icon" {
   bucket = aws_s3_bucket.static_site.bucket
   key    = "icon.png"
   source = "${path.module}/icon.png"
-  acl    = "public-read"
   content_type = "image/png"
 }
 
