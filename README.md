@@ -36,3 +36,12 @@ Access the website using the below url
 
 https://iec-mon.s3.us-east-1.amazonaws.com/index.html
 
+####################################################
+
+To Deploy the static website using Github workflow.
+
+```
+Go to Github actions -> Deploy Static website using S3 -> Run the workflow to deploy the website using s3
+```
+
+
